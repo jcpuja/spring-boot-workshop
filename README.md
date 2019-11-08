@@ -60,4 +60,6 @@ Mit einem zusätzlichen Starter können wir unserer REST API Observability geben
 
 Mit einem `GET /actuator` erhalten wir eine Liste von Metriken. Mit z.B. `GET /actuator/health` können wir prüfen, ob der Server erforlgreich hochgefahren ist.
 
+## 2. Testing
 
+?
