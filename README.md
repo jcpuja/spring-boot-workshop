@@ -36,7 +36,7 @@ Die dependencies brauchen hier keine Versionsdeklaration; sie werden vom Parent 
 - Die Application-Klasse erstellen:
   - Mit `@SpringBootApplication` annotiert
   - Hat nur eine Java Main Methode, die Spring bootstrapt: `SpringApplication.run(Application.class, args);` 
-- Server starten: `mvn spring-boot:run`. Cooles ASCII-Art erwarten 😎.
+- Server starten: `mvn spring-boot:run`. Cooles ASCII-Art erwarten 😎
 
 #### 1.2 Controller hinzufügen
 
@@ -51,7 +51,46 @@ REST-Endpoints werden in sogenannten `Controller`s definiert. Vermutlich kommt d
 
 Nach einem Neustart des Servers sollte unsere Hello World REST API funktionieren.
 
-#### 1.3 (Bonus) Production-Ready Hello World
+#### 1.3 Service hinzufügen
+
+Im Sinn vom Single Responsibility Principle sollte nicht viel mehr als HTTP Request-Logik im Controller passieren. Wir könnten die Ermittlung des Greetings in ein Service extrahieren.
+
+**Ziel:** Ein Service erstellen, der die Begrüssung liefert, und dieser aus dem Controller aufrufen.
+
+- Neue Klasse anlegen, evtl. im eigenen Package: `GreetingService`
+- Annotation hinzufügen: `@Service`
+- Methode hinzufügen, die "Hello World!" zurückgibt
+- Ein Feld vom Typ `GreetingService` im `GreetingController` definieren und im Constructor initialisieren
+- Die Service-Methode aufrufen, um die Begrüssung zu ermitteln
+
+**Erklärung:**
+
+Klassen, die mit `@Component` annotiert sind, werden automatisch von Spring Boot erkannt und für Injection bereitgestellt (`@Service` ist eine Spezialisierung von `@Component`).
+
+Alle Kandidaten für Injection werden beim Bootstrappen instanziert und in einen **Application Context** gesammelt. Solche Objekte, die von Spring managed werden, bezeichnet man als **Beans**.
+
+Spring hat automatisch das `GreetingService` Bean aus dem Application Context zum Konstruktor von `GreetingController` geliefert. Um diese Injection explizit zu machen, könnten wir die `@Autowired` Annotation verwenden (äquivalent zu `@Inject` in Java EE). `@Autowired` ist auch benötigt bei Field oder Setter injection. 
+
+Wir können den Application Context in unserem Code einbinden, z.B. für Debugging.
+
+<details>
+    <summary>Application Context Injection Beispiel</summary>
+    
+```java
+import org.springframework.context.ApplicationContext;
+
+// Feld wird im Konstruktor injected
+private final ApplicationContext context;
+
+// In einer Methode: die Namen aller Beans ausgeben, die sich im Kontext befinden
+Arrays.stream(context.getBeanDefinitionNames())
+        .sorted()
+        .forEach(System.out::println);
+```
+</details>
+
+
+#### 1.4 (Bonus) Production-Ready Hello World
 
 Mit einem zusätzlichen Starter können wir unserer REST API Observability geben: Actuator.
 
@@ -100,52 +139,8 @@ MockMVC von Spring Test erlaubt uns, einfaches Testing von HTTP APIs zu schreibe
 
 Ziel: SpringBootTest `webEnvironment` verwenden, um einen echten Server zu starten, und Integrationstests dagegen ausführen.
 
-<details>
-    <summary>Antwort:</summary>
-   
-```java
-package ch.bluesky.spring.controller;
+- `@SpringBootTest` konfigurieren: `webEnvironment` auf `RANDOM_PORT` setzen
+- Port als Feld der Testklasse definieren, mit `@LocalServerPort` wird dieser befüllt
+- Mit `TestRestTemplate` kann mit dem Test-Server kommuniziert werden
+- Test schreiben, der ein Aufruf auf `http://localhost:<port>/greeting` ausführt, und "Hello World!" als Response erwartet.
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
-
-import java.net.URL;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.junit4.SpringRunner;
-
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-public class GreetingControllerIT {
-
-  @LocalServerPort
-  private int port;
-
-  private URL base;
-
-  @Autowired
-  private TestRestTemplate restTemplate;
-
-  @Before
-  public void setUp() throws Exception {
-    this.base = new URL("http://localhost:" + port);
-  }
-
-  @Test
-  public void shouldRespondHelloWorld() {
-    final ResponseEntity<String> response = restTemplate
-        .getForEntity(base.toString() + "/greeting", String.class);
-
-    assertThat(response.getBody(), equalTo("Hello World!"));
-  }
-}
-
-```
-</details>
