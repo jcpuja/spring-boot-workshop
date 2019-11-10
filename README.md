@@ -13,12 +13,13 @@ Bonus falls Zeit übrig:
 
 ## Voraussetzungen
 
-- JDK 8+
-- Maven 3.2+
+- JDK 8 oder höher
+- Maven 3.2 oder höher
+- Dein lieblings-Java IDE
 
 ## Anleitung
 
-Dieser Repository enthält auf `master` ein leeres Maven Projekt. Das ist der Startpunkt unseres Workshops, bitte clonen! 
+Dieses Repository enthält auf `master` ein leeres Maven Projekt. Das ist der Startpunkt unseres Workshops, bitte clonen! 
 
 In jedem Abschnitt unter **Aufgaben** sind Ziele definiert. Diese können mit den Instruktionen in den nachfolgenden Bullet Point Listen erreicht werden.
 
@@ -161,3 +162,53 @@ Mock MVC von Spring Test erlaubt uns, einfaches Testing von HTTP APIs zu schreib
 - Mit `TestRestTemplate` kann mit dem Test-Server kommuniziert werden
 - Test schreiben, der ein Aufruf auf `http://localhost:<port>/greeting` ausführt, und "Hello World!" als Response erwartet.
 
+### 3 (Bonus) Spring Data
+
+Spring Data abstrahiert die Persistenz-Schicht. Ein zentrales Konzept dabei ist das Repository Pattern aus Domain-Driven Design. Spring Data bietet Repositories mit fertigen CRUD-Funktionalitäten für viele Persistenz-Technologien. Diese lassen sich sehr einfach für eigene Logik erweitern.
+
+Wir werden unsere Begrüssungen in eine Datenbank ablagern. Dafür werden wir JPA und eine in-memory Datenbank (H2) verwenden.
+
+#### 3.1 Datenbank anbinden und mit Daten befüllen
+
+**Ziel:** Unsere H2 Datenbank wird mit dem Spring Boot server gestartet und mit Daten befüllt, und wir können diese in der H2 Console abfragen.
+
+- Abhängigkeit auf Spring Data JPA und H2 in Maven hinzufügen: `org.springframework.boot:spring-boot-starter-data-jpa` und `com.h2database:h2`
+
+Mit dem Spring-Data JPA starter wird automatisch versucht, eine passende Datenbank zu konfigurieren. Wenn H2 sich auf dem Classpath befindet, wird per Default eine In-memory-Instanz gestartet.  
+
+Die H2 Console ist standardmässig nicht aktiviert. Wir können sie per Konfiguration aktivieren: 
+
+- Spring Configuration file in `src/main/resources` anlegen: `application.yml`
+- Die Eigenschaft `spring.h2.console.enabled` auf `true` setzen
+
+Jetzt ist die H2 Console verfügbar: http://localhost:8080/h2-console. Man kann sich mit folgenden Parameter an die DB verbinden: URL = `jdbc:h2:mem:testdb`, username = `sa`, leeres Passwort. 
+
+Die in-memory Datenbank geht bei jedem Neustart des Servers verloren. Für diesen Workshop können wir mittels eines SQL-Skripts bei jedem Start die Daten befüllen.
+
+- Skript mit Name `data.sql` in `src/main/resources` anlegen
+- Folgendes SQL soll die Greetings-Daten anlegen:
+  ```h2
+  DROP TABLE IF EXISTS greetings;
+  
+  CREATE TABLE greetings (
+    id INT AUTO_INCREMENT  PRIMARY KEY,
+    language VARCHAR(10) NOT NULL,
+    text VARCHAR(250) NOT NULL
+  );
+  
+  INSERT INTO greetings (language, text) VALUES
+    ('en', 'Hello World!'),
+    ('de', 'Hallo Welt!'),
+    ('fr', 'Salut, monde !');
+  ```
+
+Nach einem Server Neustart sollten die Daten in der H2 Console ersichtlich sein.
+
+#### 3.2 Daten lesen mit JPA 
+
+- Define entity mapping class
+- Define Repository interface
+- Implement lookup with "findById"
+- Goal: find by language. Declare "findByLanguage" method: custom methods
+- Extract parameter all the way to controller method, annotate with `@RequestParam` and default value
+- Bonus: refactor using lombok
