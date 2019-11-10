@@ -13,12 +13,13 @@ Bonus falls Zeit übrig:
 
 ## Voraussetzungen
 
-- JDK 8+
-- Maven 3.2+
+- JDK 8 oder höher
+- Maven 3.2 oder höher
+- Dein lieblings-Java IDE
 
 ## Anleitung
 
-Dieser Repository enthält auf `master` ein leeres Maven Projekt. Das ist der Startpunkt unseres Workshops, bitte clonen! 
+Dieses Repository enthält auf `master` ein leeres Maven Projekt. Das ist der Startpunkt unseres Workshops, bitte clonen! 
 
 In jedem Abschnitt unter **Aufgaben** sind Ziele definiert. Diese können mit den Instruktionen in den nachfolgenden Bullet Point Listen erreicht werden.
 
@@ -161,3 +162,81 @@ Mock MVC von Spring Test erlaubt uns, einfaches Testing von HTTP APIs zu schreib
 - Mit `TestRestTemplate` kann mit dem Test-Server kommuniziert werden
 - Test schreiben, der ein Aufruf auf `http://localhost:<port>/greeting` ausführt, und "Hello World!" als Response erwartet.
 
+### 3 (Bonus) Spring Data
+
+Spring Data abstrahiert die Persistenz-Schicht. Ein zentrales Konzept dabei ist das Repository Pattern aus Domain-Driven Design. Spring Data bietet Repositories mit fertigen CRUD-Funktionalitäten für viele Persistenz-Technologien. Diese lassen sich sehr einfach für eigene Logik erweitern.
+
+Wir werden unsere Begrüssungen in eine Datenbank ablagern. Dafür werden wir JPA und eine in-memory Datenbank (H2) verwenden.
+
+#### 3.1 Datenbank anbinden und mit Daten befüllen
+
+**Ziel:** Unsere H2 Datenbank wird mit dem Spring Boot server gestartet und mit Daten befüllt, und wir können diese in der H2 Console abfragen.
+
+- Abhängigkeit auf Spring Data JPA und H2 in Maven hinzufügen: `org.springframework.boot:spring-boot-starter-data-jpa` und `com.h2database:h2`
+
+Mit dem Spring-Data JPA starter wird automatisch versucht, eine passende Datenbank zu konfigurieren. Wenn H2 sich auf dem Classpath befindet, wird per Default eine In-memory-Instanz gestartet.  
+
+Die H2 Console ist standardmässig nicht aktiviert. Wir können sie per Konfiguration aktivieren: 
+
+- Spring Configuration file in `src/main/resources` anlegen: `application.yml`
+- Die Eigenschaft `spring.h2.console.enabled` auf `true` setzen
+
+Jetzt ist die H2 Console verfügbar: http://localhost:8080/h2-console. Man kann sich mit folgenden Parameter an die DB verbinden: URL = `jdbc:h2:mem:testdb`, username = `sa`, leeres Passwort. 
+
+Die in-memory Datenbank geht bei jedem Neustart des Servers verloren. Für diesen Workshop können wir mittels eines SQL-Skripts bei jedem Start die Daten befüllen.
+
+- Skript mit Name `data.sql` in `src/main/resources` anlegen
+- Folgendes SQL soll die Greetings-Daten anlegen:
+  ```sql
+  DROP TABLE IF EXISTS greetings;
+  
+  CREATE TABLE greetings (
+    id INT AUTO_INCREMENT  PRIMARY KEY,
+    language VARCHAR(10) NOT NULL,
+    text VARCHAR(250) NOT NULL
+  );
+  
+  INSERT INTO greetings (language, text) VALUES
+    ('en', 'Hello World!'),
+    ('de', 'Hallo Welt!'),
+    ('fr', 'Salut, monde !');
+  ```
+
+Nach einem Server Neustart sollten die Daten in der H2 Console ersichtlich sein.
+
+#### 3.2 Daten lesen mit JPA 
+
+**Ziel:** Ein Durchstich bauen, in dem wir das Begrüssungstext "Hello World!" aus der Datenbank holen.
+
+- Entitätsklasse anlegen: `Greeting`
+- Annotation `javax.persistence.Entity`, damit sie von Spring Data als JPA Entität erkannt wird
+- Name der SQL Tabelle mit einer `javax.persistence.Table`-Annotation angeben
+- Ein Feld pro SQL Spalte deklarieren, mit dem gleichen Name wie die SQL Spalte. Getters/setters generieren
+- Das "id" Feld mit `javax.persistence.Id` annotieren
+
+Wir haben jetzt unser Object-Relational Mapping. Wir brauchen jetzt ein `Repository`, der sich um das Querying aus der DB kümmert.
+
+- Interface anlegen `GreetingRepository`
+- Spring Datas `JpaRepository` erweitern, um standard CRUD-Funktionalität zu erhalten. Entität und ID-Klasse als Generic Types eingeben.
+- Im `GreetingService` eine Abhängigkeit zum `GreetingRepository` einbauen
+- In der Service-Methode `greetingRepository.findById()` verwenden, um die Begrüssung mit `id = 1` zu holen und deren Text zurückliefern (als Durchstich)
+
+Mit einem Server Neustart können wir sehen, dass die Texte jetzt aus der Datenbank geholt werden. Mit einem Debugger können wir andere Methoden des Repositories probieren (`findAll`...).
+
+#### 3.3 Eigene Queries mit Custom Methods ausführen
+
+**Ziel:** Beim REST-Aufruf spezifizieren können, auf welche Sprache ich meine Begrüssung erhalten möchte. Z.B. als Request Parameter: `GET /greeting?language=de`
+
+Wenn ich in meinem Repository Interface methoden deklariere, die bestimmte Keywords entsprechen, kann Spring Data diese Keywords automatisch erkennen und eine Implementation liefern. Ich kann deklarativ meine Queries auflisten und sie werden automatisch aufgebaut und ausgeführt.
+
+- Im `GreetingRepository` eine Methode deklarieren: `findByLanguage`. Ein return type von `Optional<Greeting>` ist für Suchen nach *einem* Wert empfohlen.
+- Die Methode in `GreetingService` verwenden
+- Parameter `language` extrahieren, bis zur Controller-Methode
+- Controller-Parameter mit `@RequestParam` annotieren
+- Ein `defaultValue` von `en` konfigurieren
+
+Die Sprache der Begrüssung kann jetzt aus der API geändert werden.
+
+Danke fürs Mitmachen 😊
+
+## Referenzen
