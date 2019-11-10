@@ -51,7 +51,7 @@ REST-Endpoints werden in sogenannten `Controller`s definiert. Vermutlich kommt d
 
 Nach einem Neustart des Servers sollte unsere Hello World REST API funktionieren.
 
-#### Production-Ready Hello World
+#### 1.3 (Bonus) Production-Ready Hello World
 
 Mit einem zusätzlichen Starter können wir unserer REST API Observability geben: Actuator.
 
