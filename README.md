@@ -187,7 +187,7 @@ Die in-memory Datenbank geht bei jedem Neustart des Servers verloren. Für diese
 
 - Skript mit Name `data.sql` in `src/main/resources` anlegen
 - Folgendes SQL soll die Greetings-Daten anlegen:
-  ```h2
+  ```sql
   DROP TABLE IF EXISTS greetings;
   
   CREATE TABLE greetings (
@@ -206,9 +206,37 @@ Nach einem Server Neustart sollten die Daten in der H2 Console ersichtlich sein.
 
 #### 3.2 Daten lesen mit JPA 
 
-- Define entity mapping class
-- Define Repository interface
-- Implement lookup with "findById"
-- Goal: find by language. Declare "findByLanguage" method: custom methods
-- Extract parameter all the way to controller method, annotate with `@RequestParam` and default value
-- Bonus: refactor using lombok
+**Ziel:** Ein Durchstich bauen, in dem wir das Begrüssungstext "Hello World!" aus der Datenbank holen.
+
+- Entitätsklasse anlegen: `Greeting`
+- Annotation `javax.persistence.Entity`, damit sie von Spring Data als JPA Entität erkannt wird
+- Name der SQL Tabelle mit einer `javax.persistence.Table`-Annotation angeben
+- Ein Feld pro SQL Spalte deklarieren, mit dem gleichen Name wie die SQL Spalte. Getters/setters generieren
+- Das "id" Feld mit `javax.persistence.Id` annotieren
+
+Wir haben jetzt unser Object-Relational Mapping. Wir brauchen jetzt ein `Repository`, der sich um das Querying aus der DB kümmert.
+
+- Interface anlegen `GreetingRepository`
+- Spring Datas `JpaRepository` erweitern, um standard CRUD-Funktionalität zu erhalten. Entität und ID-Klasse als Generic Types eingeben.
+- Im `GreetingService` eine Abhängigkeit zum `GreetingRepository` einbauen
+- In der Service-Methode `greetingRepository.findById()` verwenden, um die Begrüssung mit `id = 1` zu holen und deren Text zurückliefern (als Durchstich)
+
+Mit einem Server Neustart können wir sehen, dass die Texte jetzt aus der Datenbank geholt werden. Mit einem Debugger können wir andere Methoden des Repositories probieren (`findAll`...).
+
+#### 3.3 Eigene Queries mit Custom Methods ausführen
+
+**Ziel:** Beim REST-Aufruf spezifizieren können, auf welche Sprache ich meine Begrüssung erhalten möchte. Z.B. als Request Parameter: `GET /greeting?language=de`
+
+Wenn ich in meinem Repository Interface methoden deklariere, die bestimmte Keywords entsprechen, kann Spring Data diese Keywords automatisch erkennen und eine Implementation liefern. Ich kann deklarativ meine Queries auflisten und sie werden automatisch aufgebaut und ausgeführt.
+
+- Im `GreetingRepository` eine Methode deklarieren: `findByLanguage`. Ein return type von `Optional<Greeting>` ist für Suchen nach *einem* Wert empfohlen.
+- Die Methode in `GreetingService` verwenden
+- Parameter `language` extrahieren, bis zur Controller-Methode
+- Controller-Parameter mit `@RequestParam` annotieren
+- Ein `defaultValue` von `en` konfigurieren
+
+Die Sprache der Begrüssung kann jetzt aus der API geändert werden.
+
+Danke fürs Mitmachen 😊
+
+## Referenzen
