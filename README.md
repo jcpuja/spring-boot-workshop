@@ -36,7 +36,7 @@ Die dependencies brauchen hier keine Versionsdeklaration; sie werden vom Parent 
 - Die Application-Klasse erstellen:
   - Mit `@SpringBootApplication` annotiert
   - Hat nur eine Java Main Methode, die Spring bootstrapt: `SpringApplication.run(Application.class, args);` 
-- Server starten: `mvn spring-boot:run`. Cooles ASCII-Art erwarten.
+- Server starten: `mvn spring-boot:run`. Cooles ASCII-Art erwarten 😎.
 
 #### 1.2 Controller hinzufügen
 
@@ -57,8 +57,95 @@ Mit einem zusätzlichen Starter können wir unserer REST API Observability geben
 
 - Actuator dependency hinzufügen: `spring-boot-starter-actuator`
 
-Mit einem `GET /actuator` erhalten wir eine Liste von Metriken. Mit z.B. `GET /actuator/health` können wir prüfen, ob der Server erforlgreich hochgefahren ist.
+Mit einem `GET /actuator` erhalten wir eine Liste von Metriken und Management endpoints. Mit z.B. `GET /actuator/health` können wir prüfen, ob der Server erforlgreich hochgefahren ist.
 
 ## 2. Testing
 
-?
+*Testing ist wichtig 😉*
+
+[Testpyramide](https://martinfowler.com/bliki/TestPyramid.html): Die zahlreichsten Tests sollten schnelle, feingeschnittene Tests sein. Diese kann man mit normalem JUnit und ggf. Mockito schreiben (keine besondere Spring-Abhängigkeiten).
+
+Für Szenarien, wo wir mehrere Schichten testen wollen, oder sogar die ganze App, kann uns **Spring Test** helfen. Wir können beliebig viele Beans in einen Test Kontext mitnehmen und zusammenspielen lassen.
+
+#### 2.1 Testklasse anlegen
+
+- Abhängigkeit auf Spring Test Starter deklarieren: `spring-boot-starter-test`
+- Testklasse für `GreetingController` anlegen
+- `SpringRunner` verwenden
+- Spring Boot Test Autokonfiguration aktivieren: `@SpringBootTest`
+- Leeren Test hinzufügen, um unseren Test-Kontext zu prüfen
+- Test ausführen, cooles ASCII-Art erwarten 😎 
+
+Als Vorbereitung zum Test wird von Spring der Test-Kontext aufgebaut, als Default mit allen Klassen der Anwendung. Mit Parameter der `@SpringBootTest`-Annotation können wir konfigurieren, wie genau der Test-Kontext aufgebaut werden muss.
+
+#### 2.2 REST API test schreiben
+
+MockMVC von Spring Test erlaubt uns, einfaches Testing von HTTP APIs zu schreiben.
+
+- MockMVC Autokonfiguration aktivieren: `@AutoConfigureMockMvc`
+- Ein Bean des Typs `MockMvc` in der Testklasse einbinden
+- Ein Test schreiben, der folgendes prüft:
+  - Wenn ich ein Request auf `GET /greeting` verschicke
+  - Dann erwarte ein HTTP Status von `200 OK`
+  - Und erwarte ein Response Body mit dem Text `Hello World!`
+ 
+**Hinweise**:
+
+- Das `MockMvc`-Bean bietet eine Fluent API, um diese erwarteten Request-Response Dialog abzubilden. Wir können bei der Methode `mockMvc.perform()` anfangen.
+- Instanzen von `RequestBuilder`s um den Aufruf aufzubauen kann man über die Utility-Klasse `MockMvcRequestBuilders` erhalten.
+- URL: `/greeting` (für MockMvc kein Hostname nötig)
+- Instanzen von `RequestMatcher`s für Expectations kann man über die Utility-Klasse `MockMvcResultMatchers` erhalten.
+
+#### 2.3 (Bonus) Integrationstest schreiben
+
+Ziel: SpringBootTest `webEnvironment` verwenden, um einen echten Server zu starten, und Integrationstests dagegen ausführen.
+
+<details>
+    <summary>Antwort:</summary>
+   
+```java
+package ch.bluesky.spring.controller;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
+
+import java.net.URL;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.junit4.SpringRunner;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+public class GreetingControllerIT {
+
+  @LocalServerPort
+  private int port;
+
+  private URL base;
+
+  @Autowired
+  private TestRestTemplate restTemplate;
+
+  @Before
+  public void setUp() throws Exception {
+    this.base = new URL("http://localhost:" + port);
+  }
+
+  @Test
+  public void shouldRespondHelloWorld() {
+    final ResponseEntity<String> response = restTemplate
+        .getForEntity(base.toString() + "/greeting", String.class);
+
+    assertThat(response.getBody(), equalTo("Hello World!"));
+  }
+}
+
+```
+</details>
