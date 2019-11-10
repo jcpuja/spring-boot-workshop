@@ -25,7 +25,7 @@ Extra:
 
 Das Ziel hier ist, eine Hello World REST API zu bauen. Wir möchten, dass unsere API über HTTP auf `GET /greeting` mit `Hello World!` antwortet.
 
-#### Maven-Projekt aufsetzen:
+#### 1.1 Maven-Projekt aufsetzen:
 
 - Parent POM deklarieren: `spring-boot-starter-parent`
 - Dependency zum Web Starter deklarieren: `spring-boot-starter-web`
@@ -33,16 +33,15 @@ Das Ziel hier ist, eine Hello World REST API zu bauen. Wir möchten, dass unsere
 
 Die dependencies brauchen hier keine Versionsdeklaration; sie werden vom Parent Pom managed (transitiv, von `org.springframework.boot:spring-boot-dependencies`).
 
-#### Application hinzufügen
-
 - Die Application-Klasse erstellen:
   - Mit `@SpringBootApplication` annotiert
   - Hat nur eine Java Main Methode, die Spring bootstrapt: `SpringApplication.run(Application.class, args);` 
 - Server starten: `mvn spring-boot:run`. Cooles ASCII-Art erwarten.
 
-Bis jetzt läuft auf dem Server nichts. Wir müssen den REST-Endpoint hinzufügen.
+#### 1.2 Controller hinzufügen
 
-#### Controller hinzufügen
+Bis jetzt läuft auf dem Server nichts. Wir müssen einen REST-Endpoint bauen.
+
 REST-Endpoints werden in sogenannten `Controller`s definiert. Vermutlich kommt das aus dem MVC-Pattern, auf dem Spring Web-MVC aufgebaut wurde. Sie sind die Spring-Äquivalenten zu Java EE `Resource`-Klassen.
 
 - Controller-Klasse hinzufügen (evtl im eigenen Package): `GreetingController`
