@@ -239,6 +239,6 @@ Die Sprache der Begrüssung kann jetzt aus der API geändert werden.
 
 Danke fürs Mitmachen 😊
 
-## Referenzen
+## Referenzen
 
 TODO
