@@ -4,28 +4,37 @@ Ein Workshop, um Spring Boot zu entdecken. Für Entwickler, die keine oder wenig
 
 Der Workshop hat die Ziele, folgende Fragen zu beantworten:
 
-- Wie ist Spring Boot grob strukturiert (starters, maven plugin)?
+- Wie ist Spring Boot grob strukturiert (parent pom, starters)?
 - Wie kann ich eine Rest API mit Spring Boot bauen?
-
-Einen von:
 - Wie kann ich Spring Boot Anwendungen testen?
-- Was ist Spring Data und wie integriert es sich mit meiner Anwendung?
 
-Extra:
-- Wie kann ich meine Anwendung sichern mit Spring Security?
+Bonus falls Zeit übrig:
+- Wie kann ich Datenhaltung mit Spring Data vereinfachen?
 
-# Voraussetzungen
+## Voraussetzungen
 
 - JDK 8+
 - Maven 3.2+
 
-# Schritte
+## Anleitung
 
-## 1. Hello world
+Dieser Repository enthält auf `master` ein leeres Maven Projekt. Das ist der Startpunkt unseres Workshops, bitte clonen! 
 
-Das Ziel hier ist, eine Hello World REST API zu bauen. Wir möchten, dass unsere API über HTTP auf `GET /greeting` mit `Hello World!` antwortet.
+In jedem Abschnitt unter **Aufgaben** sind Ziele definiert. Diese können mit den Instruktionen in den nachfolgenden Bullet Point Listen erreicht werden.
+
+Fertige Lösungen sind in den branches zu finden, jeweils 1 branch pro Abschnitt.
+
+Einige Abschnitte sind als "Bonus" markiert. Diese sind da, falls Zeit übrig ist oder ihr euch langweilt!
+
+## Aufgaben
+
+### 1. Hello world
+
+Wir möchten eine klassiche Hello World REST API bauen. Zuerst soll unsere API über HTTP auf `GET /greeting` mit `Hello World!` antworten.
 
 #### 1.1 Maven-Projekt aufsetzen:
+
+**Ziel:** Spring Boot in unseren Maven Projekt einbinden, ein leerer Server starten. 
 
 - Parent POM deklarieren: `spring-boot-starter-parent`
 - Dependency zum Web Starter deklarieren: `spring-boot-starter-web`
@@ -41,6 +50,8 @@ Die dependencies brauchen hier keine Versionsdeklaration; sie werden vom Parent 
 #### 1.2 Controller hinzufügen
 
 Bis jetzt läuft auf dem Server nichts. Wir müssen einen REST-Endpoint bauen.
+
+**Ziel:** Ein REST-Endpoint zu unserem Server hinzufügen, der auf `GET /greeting` mit `Hello World!` antwortet.
 
 REST-Endpoints werden in sogenannten `Controller`s definiert. Vermutlich kommt das aus dem MVC-Pattern, auf dem Spring Web-MVC aufgebaut wurde. Sie sind die Spring-Äquivalenten zu Java EE `Resource`-Klassen.
 
@@ -92,21 +103,25 @@ Arrays.stream(context.getBeanDefinitionNames())
 
 #### 1.4 (Bonus) Production-Ready Hello World
 
+**Ziel:** Spring Boot actuator Endpoints aktivieren.
+
 Mit einem zusätzlichen Starter können wir unserer REST API Observability geben: Actuator.
 
 - Actuator dependency hinzufügen: `spring-boot-starter-actuator`
 
 Mit einem `GET /actuator` erhalten wir eine Liste von Metriken und Management endpoints. Mit z.B. `GET /actuator/health` können wir prüfen, ob der Server erforlgreich hochgefahren ist.
 
-## 2. Testing
+### 2. Testing
 
-*Testing ist wichtig 😉*
+_**Testing ist wichtig 😉**_
 
 [Testpyramide](https://martinfowler.com/bliki/TestPyramid.html): Die zahlreichsten Tests sollten schnelle, feingeschnittene Tests sein. Diese kann man mit normalem JUnit und ggf. Mockito schreiben (keine besondere Spring-Abhängigkeiten).
 
-Für Szenarien, wo wir mehrere Schichten testen wollen, oder sogar die ganze App, kann uns **Spring Test** helfen. Wir können beliebig viele Beans in einen Test Kontext mitnehmen und zusammenspielen lassen.
+Für Szenarien, wo wir mehrere Schichten testen wollen, oder sogar die ganze App, kann uns **Spring Test** helfen. Wir können beliebig viele Beans in einen Test Application Context mitnehmen und zusammenspielen lassen.
 
 #### 2.1 Testklasse anlegen
+
+**Ziel:** Eine Testklasse aufbereiten, die einen Spring Boot Test Context startet.
 
 - Abhängigkeit auf Spring Test Starter deklarieren: `spring-boot-starter-test`
 - Testklasse für `GreetingController` anlegen
@@ -115,13 +130,15 @@ Für Szenarien, wo wir mehrere Schichten testen wollen, oder sogar die ganze App
 - Leeren Test hinzufügen, um unseren Test-Kontext zu prüfen
 - Test ausführen, cooles ASCII-Art erwarten 😎 
 
-Als Vorbereitung zum Test wird von Spring der Test-Kontext aufgebaut, als Default mit allen Klassen der Anwendung. Mit Parameter der `@SpringBootTest`-Annotation können wir konfigurieren, wie genau der Test-Kontext aufgebaut werden muss.
+Als Vorbereitung zum Test wird von Spring der Test Application Context aufgebaut, als Default mit allen Klassen der Anwendung. Mit Parameter der `@SpringBootTest`-Annotation können wir konfigurieren, wie genau der Test Application Context aufgebaut werden muss.
 
 #### 2.2 REST API test schreiben
 
-MockMVC von Spring Test erlaubt uns, einfaches Testing von HTTP APIs zu schreiben.
+**Ziel:** Ein Testcase schreiben, der mit Mock MVC ein Aufruf zu unserer API simuliert und die Antwort auf Erwartungen (Status code, Inhalt) überprüft.
 
-- MockMVC Autokonfiguration aktivieren: `@AutoConfigureMockMvc`
+Mock MVC von Spring Test erlaubt uns, einfaches Testing von HTTP APIs zu schreiben.
+
+- Mock MVC Autokonfiguration aktivieren: `@AutoConfigureMockMvc`
 - Ein Bean des Typs `MockMvc` in der Testklasse einbinden
 - Ein Test schreiben, der folgendes prüft:
   - Wenn ich ein Request auf `GET /greeting` verschicke
@@ -137,7 +154,7 @@ MockMVC von Spring Test erlaubt uns, einfaches Testing von HTTP APIs zu schreibe
 
 #### 2.3 (Bonus) Integrationstest schreiben
 
-Ziel: SpringBootTest `webEnvironment` verwenden, um einen echten Server zu starten, und Integrationstests dagegen ausführen.
+**Ziel:** SpringBootTest `webEnvironment` verwenden, um einen echten Server zu starten, und Integrationstests dagegen ausführen.
 
 - `@SpringBootTest` konfigurieren: `webEnvironment` auf `RANDOM_PORT` setzen
 - Port als Feld der Testklasse definieren, mit `@LocalServerPort` wird dieser befüllt
