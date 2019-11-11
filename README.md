@@ -241,4 +241,6 @@ Danke fürs Mitmachen 😊
 
 ## Referenzen
 
-TODO
+- Spring Boot [Getting started guide](https://spring.io/guides/gs/spring-boot/)
+- [Spring Boot Dokumentation](https://docs.spring.io/spring-boot/docs/2.3.0.BUILD-SNAPSHOT/reference/htmlsingle/)
+- Eine [Liste von starters](https://docs.spring.io/spring-boot/docs/2.3.0.BUILD-SNAPSHOT/reference/htmlsingle/#using-boot-starter)
