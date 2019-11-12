@@ -223,7 +223,7 @@ Wir haben jetzt unser Object-Relational Mapping. Wir brauchen jetzt ein `Reposit
 
 Mit einem Server Neustart können wir sehen, dass die Texte jetzt aus der Datenbank geholt werden. Mit einem Debugger können wir andere Methoden des Repositories probieren (`findAll`...).
 
-#### 3.3 Eigene Queries mit Custom Methods ausführen
+#### 3.3 Eigene Queries mit Derived Query Methods ausführen
 
 **Ziel:** Beim REST-Aufruf spezifizieren können, auf welche Sprache ich meine Begrüssung erhalten möchte. Z.B. als Request Parameter: `GET /greeting?language=de`
 
@@ -244,3 +244,4 @@ Danke fürs Mitmachen 😊
 - Spring Boot [Getting started guide](https://spring.io/guides/gs/spring-boot/)
 - [Spring Boot Dokumentation](https://docs.spring.io/spring-boot/docs/2.3.0.BUILD-SNAPSHOT/reference/htmlsingle/)
 - Eine [Liste von starters](https://docs.spring.io/spring-boot/docs/2.3.0.BUILD-SNAPSHOT/reference/htmlsingle/#using-boot-starter)
+- Tutorial zu [Spring Data Derived Queries](https://www.baeldung.com/spring-data-derived-queries)
